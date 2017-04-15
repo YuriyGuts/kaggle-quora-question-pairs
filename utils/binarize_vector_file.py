@@ -3,11 +3,11 @@
 import os
 import sys
 
-import dill
+import pickle
 import numpy as np
 
 
-def read_glove_vectors(filename, dimension, count):
+def read_text_vectors(filename, dimension, count):
     vocab = {}
     vectors = np.zeros((count, dimension), dtype='float32')
 
@@ -23,18 +23,19 @@ def read_glove_vectors(filename, dimension, count):
 
 def main():
     if len(sys.argv) < 4:
-        print('Usage: preprocess_stanford_glove.py <txtfile> <dimensions> <wordcount>')
+        print('Usage: binarize_vector_file.py <txtfile> <dimensions> <wordcount>')
         sys.exit(1)
 
     filename, dims, count = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 
     basename = os.path.splitext(os.path.basename(filename))[0]
-    vectors, vocab = read_glove_vectors(filename, dims, count)
+    vectors, vocab = read_text_vectors(filename, dims, count)
 
-    with open(basename + '.vectors.dill', 'wb') as f:
-        dill.dump(vectors, f)
-    with open(basename + '.vocab.dill', 'wb') as f:
-        dill.dump(vocab, f)
+    with open(basename + '.vectors.pickle', 'wb') as f:
+        pickle.dump(vectors, f, protocol=4)
+    with open(basename + '.vocab.pickle', 'wb') as f:
+        pickle.dump(vocab, f, protocol=4)
+
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,6 @@
 # Project-specific
 
-data/aux
-data/*.csv
+data/
 
 
 # Byte-compiled / optimized / DLL files
