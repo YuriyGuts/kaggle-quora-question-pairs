@@ -85,7 +85,7 @@ def get_question_tokens(question):
     question = spell_digits(question)
     question = expand_negations(question)
     question = correct_spelling(question)
-    return [token for token in tokenizer.tokenize(question) if token not in stopwords]
+    return [token.lower() for token in tokenizer.tokenize(question) if token not in stopwords]
 
 
 input_filename, output_filename = sys.argv[1], sys.argv[2]
