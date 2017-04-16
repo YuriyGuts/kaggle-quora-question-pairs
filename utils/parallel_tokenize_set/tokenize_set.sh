@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 
-INPUT_FILE=test.csv
-OUTPUT_FILE=test.json
-LINES_PER_CHUNK=200000
+INPUT_FILE=${1:-test.csv}
+OUTPUT_FILE=${2:-test.json}
+LINES_PER_CHUNK=${3:-100000}
 
 
 # Split the file and spawn subjobs.
-tail -n +2 $INPUT_FILE | split -l $LINES_PER_CHUNK
+tail -n +2 "$INPUT_FILE" | split -l $LINES_PER_CHUNK
 SUBPROCESSES=""
 
 for file in x*
 do
-    (head -n 1 $INPUT_FILE; cat "$file") > "$file".new
+    (head -n 1 "$INPUT_FILE"; cat "$file") > "$file".new
     mv "$file".new "$file"
+    mv "$file" "$file.csv"
 
-    ./tokenize_test_chunk.py $file $file.json $file.spellcheck.log &
+    ./tokenize_chunk.py "$file.csv" "$file.json" &
     SUBPROCESSES="$SUBPROCESSES $!"
 done
 
@@ -31,4 +32,4 @@ fi
 
 
 # Merge the chunks into a single JSON.
-./merge_chunks.py $OUTPUT_FILE
+./merge_chunks.py "$OUTPUT_FILE"

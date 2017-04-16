@@ -3,9 +3,9 @@ Parallel tokenization tool. Splits the question set into smaller batches, tokeni
 
 ## Usage
 
-Please two auxiliary files here:
+Please three auxiliary files here:
 
-* `custom_valid_words.vocab`: list of words to be considered valid by the spellchecker. This could be a vocabulary from the pretrained word vectors.
 * `stopwords.vocab`: list of words to be dropped during tokenization.
+* `spelling_corrections.json`: spelling correction dictionary.
 
 Adjust `INPUT_FILE`, `OUTPUT_FILE`, `LINES_PER_CHUNK` in `tokenize_test_set.sh` as needed. Run the script afterwards.

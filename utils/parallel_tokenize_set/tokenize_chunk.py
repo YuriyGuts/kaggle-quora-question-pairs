@@ -5,8 +5,6 @@ import pickle
 import sys
 import time
 
-import enchant
-import pylev
 import nltk
 
 import pandas as pd
@@ -42,16 +40,6 @@ def save_lines(lines, filename):
         f.write('\n'.join(lines))
 
 
-input_filename, output_filename, log_filename = sys.argv[1], sys.argv[2], sys.argv[3]
-
-
-questions_train = pd.read_csv(input_filename).fillna('none')
-stopwords = set(load_lines('stopwords.vocab'))
-tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
-spellchecker = enchant.DictWithPWL("en_US", 'custom_valid_words.vocab')
-spellcheck_log = open(sys.argv[3], 'w')
-
-
 def translate(text, translation):
     for token, replacement in translation.items():
         text = text.replace(token, ' ' + replacement + ' ')
@@ -85,37 +73,11 @@ def expand_negations(text):
     return text.replace("n't", " not")
 
 
-def get_best_suggestion(word):
-    suggestion_scores = {
-        suggestion: pylev.damerau_levenshtein(word, suggestion)
-        for suggestion in spellchecker.suggest(word)
-    }
-    if len(suggestion_scores) == 0:
-        return None
-    
-    best_suggestion = min(suggestion_scores, key=suggestion_scores.get)
-    if suggestion_scores[best_suggestion] > 4:
-        return None
-    
-    return best_suggestion
-
-
 def correct_spelling(text):
-    tokens = tokenizer.tokenize(text)
-    corrected_tokens = []
-    
-    for token in tokens:
-        if not spellchecker.check(token):
-            correction = get_best_suggestion(token)
-            if correction:
-                corrected_tokens.append(correction.lower())
-                print('{} ---> {}'.format(token, correction), file=spellcheck_log, flush=True)
-            else:
-                corrected_tokens.append(token)
-        else:
-            corrected_tokens.append(token)
-    
-    return ' '.join(corrected_tokens)
+    return ' '.join(
+        spelling_corrections.get(token, token)
+        for token in tokenizer.tokenize(text)
+    )
 
 
 def get_question_tokens(question):
@@ -126,19 +88,24 @@ def get_question_tokens(question):
     return [token for token in tokenizer.tokenize(question) if token not in stopwords]
 
 
-tokenized_train = []
+input_filename, output_filename = sys.argv[1], sys.argv[2]
 
+df_questions = pd.read_csv(input_filename).fillna('none')
+tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
+stopwords = set(load_lines('stopwords.vocab'))
+spelling_corrections = load_json('spelling_corrections.json')
 
-for index, row in questions_train.iterrows():
-    tokenized_train.append({
-        'id': row.test_id,
+tokenized_questions = []
+
+for index, row in df_questions.iterrows():
+    tokenized_questions.append({
+        'id': row.test_id if 'test_id' in row else row.id,
         'question1': get_question_tokens(row.question1),
         'question2': get_question_tokens(row.question2),
     })
-    
+
+    # Checkpoint intermediate results.    
     if index % 20000 == 0:
-        save_json(tokenized_train, output_filename)
+        save_json(tokenized_questions, output_filename)
 
-
-spellcheck_log.close()
-save_json(tokenized_train, output_filename)
+save_json(tokenized_questions, output_filename)

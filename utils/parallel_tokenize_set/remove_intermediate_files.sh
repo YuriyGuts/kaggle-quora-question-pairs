@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 
-rm x*
+rm x*.csv
 rm x*.json
-rm x*.spellcheck.log
