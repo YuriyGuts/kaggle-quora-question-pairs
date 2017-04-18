@@ -85,12 +85,19 @@ def get_question_tokens(question):
     question = spell_digits(question)
     question = expand_negations(question)
     question = correct_spelling(question)
-    return [token.lower() for token in tokenizer.tokenize(question) if token not in stopwords]
+    
+    tokens = [
+        token
+        for token in tokenizer.tokenize(question.lower())
+        if token not in stopwords
+    ]
+    tokens.append('.')
+    return tokens
 
 
 input_filename, output_filename = sys.argv[1], sys.argv[2]
 
-df_questions = pd.read_csv(input_filename).fillna('none')
+df_questions = pd.read_csv(input_filename).fillna('')
 tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
 stopwords = set(load_lines('stopwords.vocab'))
 spelling_corrections = load_json('spelling_corrections.json')

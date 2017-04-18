@@ -7,10 +7,16 @@ glove:
 	./utils/binarize_vector_file.py data/aux/glove.840B.300d.txt  300  `cat data/aux/glove.840B.300d.txt | wc -l`
 	./utils/binarize_vector_file.py data/aux/glove.42B.300d.txt   300  `cat data/aux/glove.42B.300d.txt | wc -l`
 
-	mv glove*.pickle data/aux
+	mv -f glove*.pickle data/aux
 
 fasttext:
-	fasttext print-vectors data/aux/fasttest.wiki.en.bin < data/preproc/quora_all.vocab > data/aux/quora_all.vec
-	./utils/binarize_vector_file.py data/aux/quora_all.vec        300  `cat data/aux/quora_all.vec | wc -l`
+	echo `cat data/aux/quora_unfiltered.vocab | wc -l` 300 > data/aux/quora_unfiltered.vec
+	fasttext print-vectors data/aux/fasttest.wiki.en.bin < data/aux/quora_unfiltered.vocab >> data/aux/quora_unfiltered.vec
 
-	mv quora*.pickle data/aux
+	echo `cat data/aux/quora_filtered.vocab | wc -l` 300 > data/aux/quora_filtered.vec
+	fasttext print-vectors data/aux/fasttest.wiki.en.bin < data/aux/quora_filtered.vocab >> data/aux/quora_filtered.vec
+
+	./utils/binarize_vector_file.py data/aux/quora_unfiltered.vec        300  `cat data/aux/quora_unfiltered.vec | wc -l`
+	./utils/binarize_vector_file.py data/aux/quora_filtered.vec          300  `cat data/aux/quora_filtered.vec | wc -l`
+
+	mv -f quora*.pickle data/aux
