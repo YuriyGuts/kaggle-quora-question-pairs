@@ -16,7 +16,11 @@ fasttext:
 	echo `cat data/aux/quora_filtered.vocab | wc -l` 300 > data/aux/quora_filtered.vec
 	fasttext print-vectors data/aux/fasttest.wiki.en.bin < data/aux/quora_filtered.vocab >> data/aux/quora_filtered.vec
 
-	./utils/binarize_vector_file.py data/aux/quora_unfiltered.vec        300  `cat data/aux/quora_unfiltered.vec | wc -l`
-	./utils/binarize_vector_file.py data/aux/quora_filtered.vec          300  `cat data/aux/quora_filtered.vec | wc -l`
+	echo `cat data/aux/quora_filtered_no_stopwords.vocab | wc -l` 300 > data/aux/quora_filtered_no_stopwords.vec
+	fasttext print-vectors data/aux/fasttest.wiki.en.bin < data/aux/quora_filtered_no_stopwords.vocab >> data/aux/quora_filtered_no_stopwords.vec
+
+	./utils/binarize_vector_file.py data/aux/quora_unfiltered.vec
+	./utils/binarize_vector_file.py data/aux/quora_filtered.vec
+	./utils/binarize_vector_file.py data/aux/quora_filtered_no_stopwords.vec
 
 	mv -f quora*.pickle data/aux
