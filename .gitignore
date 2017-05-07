@@ -1,6 +1,7 @@
 # Project-specific
 
 data/
+notebooks/wordnet
 
 
 # Byte-compiled / optimized / DLL files
