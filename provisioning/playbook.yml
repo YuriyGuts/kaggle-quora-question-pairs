@@ -1,0 +1,22 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: no
+  pre_tasks:
+    - name: Install Python for Ansible
+      raw: which python || (apt -y update && apt install -y python-minimal)
+      register: output
+      changed_when: not '/bin/python' in output.stdout
+    - setup: # gather facts now
+
+- hosts: all
+
+  roles:
+    - role: yuriyguts.anaconda
+      anaconda_install_packages: 'virtualenv joblib numpy nltk scikit-learn matplotlib pyqt'
+
+    - role: yuriyguts.jupyter
+      jupyter_plaintext_password: jupytersecret
+
+    - role: yuriyguts.lightgbm
+      lightgbm_enable_gpu_support: no

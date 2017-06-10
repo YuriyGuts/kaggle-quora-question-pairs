@@ -1,0 +1,11 @@
+- src: https://github.com/YuriyGuts/ansible-role-anaconda
+  version: master
+  name: yuriyguts.anaconda
+
+- src: https://github.com/YuriyGuts/ansible-role-jupyter
+  version: master
+  name: yuriyguts.jupyter
+
+- src: https://github.com/YuriyGuts/ansible-role-lightgbm
+  version: master
+  name: yuriyguts.lightgbm

@@ -1,8 +1,28 @@
+# --------------------
 # Project-specific
+# --------------------
 
 data/
 notebooks/wordnet
 
+
+# --------------------
+# Vagrant
+# --------------------
+
+.vagrant/
+
+
+# --------------------
+# Ansible
+# --------------------
+
+*.retry
+
+
+# --------------------
+# Python
+# --------------------
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
