@@ -3,10 +3,14 @@
   become: yes
   gather_facts: no
   pre_tasks:
-    - name: Install Python for Ansible
+    - name: (Bootstrap) Install Python for Ansible
       raw: which python || (apt -y update && apt install -y python-minimal)
       register: output
       changed_when: not '/bin/python' in output.stdout
+    - name: (Bootstrap) Install pip
+      raw: which pip || (apt -y update && apt install -y python-pip; pip install --upgrade pip)
+      register: output
+      changed_when: not '/bin/pip' in output.stdout
     - setup: # gather facts now
 
 - hosts: all
