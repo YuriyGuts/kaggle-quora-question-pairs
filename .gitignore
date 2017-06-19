@@ -2,7 +2,14 @@
 # Project-specific
 # --------------------
 
-data/
+data/*
+data/aux/*
+
+!data/README.md
+!data/aux
+!data/aux/spelling_corrections.json
+!data/aux/stopwords.vocab
+
 notebooks/wordnet
 
 
