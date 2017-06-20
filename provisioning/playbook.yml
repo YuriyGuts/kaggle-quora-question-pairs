@@ -1,5 +1,8 @@
 ---
 - hosts: all
+  vars_files:
+    - config.yml
+
   become: yes
   gather_facts: no
   pre_tasks:
@@ -7,20 +10,127 @@
       raw: which python || (apt -y update && apt install -y python-minimal)
       register: output
       changed_when: not '/bin/python' in output.stdout
+
     - name: (Bootstrap) Install pip
       raw: which pip || (apt -y update && apt install -y python-pip; pip install --upgrade pip)
       register: output
       changed_when: not '/bin/pip' in output.stdout
+
     - setup: # gather facts now
 
+
 - hosts: all
+  vars_files:
+    - config.yml
 
   roles:
     - role: yuriyguts.anaconda
-      anaconda_install_packages: 'virtualenv joblib numpy nltk scikit-learn matplotlib pyqt'
+      anaconda_use_channels:
+        - 'anaconda'
+        - 'conda-forge'
+      anaconda_install_packages: 'virtualenv joblib numpy scikit-learn networkx nltk spacy gensim matplotlib tensorflow keras pyqt'
 
     - role: yuriyguts.jupyter
-      jupyter_plaintext_password: jupytersecret
+      jupyter_daemon_enable: yes
 
     - role: yuriyguts.lightgbm
       lightgbm_enable_gpu_support: no
+
+  tasks:
+    - name: Install system dependencies
+      become: yes
+      apt:
+        name: unzip
+        state: present
+
+    - name: Clone the solution repo
+      git:
+        repo: https://github.com/YuriyGuts/kaggle-quora-question-pairs
+        dest: '{{ solution_clone_dir }}'
+
+    - name: Install Python packages required by the solution
+      pip:
+        requirements: '{{ solution_clone_dir }}/requirements.txt'
+        executable: pip
+
+    - name: Create project data placeholders
+      file:
+        path: '{{ solution_clone_dir }}/{{ item }}'
+        state: directory
+      with_items:
+        - data/aux
+        - data/aux/fasttext
+        - data/aux/word2vec
+        - data/features
+        - data/preprocessed
+        - data/submissions
+        - data/tmp
+        - data/trained
+
+    - name: Build and install FastText
+      block:
+        - name: Clone FastText repo
+          git:
+            repo: https://github.com/facebookresearch/fastText
+            dest: '{{ ansible_env.HOME }}/src/fastText'
+
+        - name: Install FastText
+          become: yes
+          shell: |
+            make
+            cp -f fasttext /usr/local/bin/fasttext
+          args:
+            chdir: '{{ ansible_env.HOME }}/src/fastText'
+
+    - name: Download FastText word embeddings
+      get_url:
+        url: 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.en.zip'
+        dest: '{{ solution_clone_dir }}/data/aux/fasttext/wiki.en.zip'
+        checksum: sha1:e74820b00ecd26c9d4e716d5cec9ac53a75b0eea
+
+    # The 'unarchive' module is broken at the time of this writing.
+    - name: Unpack FastText word embeddings
+      shell: |
+        unzip wiki.en.zip
+        rm wiki.en.vec
+      args:
+        chdir: '{{ solution_clone_dir }}/data/aux/fasttext'
+        creates: '{{ solution_clone_dir }}/data/aux/fasttext/wiki.en.bin'
+
+    - name: Download Google News word embeddings
+      get_url:
+        url: 'https://s3.amazonaws.com/dl4j-distribution/GoogleNews-vectors-negative300.bin.gz'
+        dest: '{{ solution_clone_dir }}/data/aux/word2vec/GoogleNews-vectors-negative300.bin.gz'
+        checksum: sha1:be9bfda5fdc3b3cc7376e652fc489350fe9ff863
+
+    - name: Download NLTK models
+      command: python -m nltk.downloader stopwords brown wordnet averaged_perceptron_tagger
+      args:
+        chdir: '{{ solution_clone_dir }}/data/aux'
+      changed_when: no
+
+    - name: Download SpaCy models
+      command: python -m spacy download en
+      args:
+        chdir: '{{ solution_clone_dir }}/data/aux'
+      changed_when: no
+
+    - name: Create Kaggle CLI config
+      command: 'kg config -u {{ kaggle_username }} -p {{ kaggle_password }} -c quora-question-pairs'
+      args:
+        chdir: '{{ solution_clone_dir }}/data'
+        creates: '{{ solution_clone_dir }}/data/.kaggle-cli/config'
+
+    - name: Download the competition datasets
+      shell: |
+        kg download -f train.csv.zip
+        kg download -f test.csv.zip
+        unzip train.csv.zip
+        unzip test.csv.zip
+        rm train.csv.zip
+        rm test.csv.zip
+      args:
+        chdir: '{{ solution_clone_dir }}/data'
+        creates:
+          - '{{ solution_clone_dir }}/data/train.csv'
+          - '{{ solution_clone_dir }}/data/test.csv'

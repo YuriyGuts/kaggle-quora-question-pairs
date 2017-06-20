@@ -1,0 +1,10 @@
+---
+# The path on the target machine to clone the solution to.
+solution_clone_dir: '{{ ansible_env.HOME }}/src/kaggle-quora-question-pairs'
+
+# The password to set for the Jupyter server on the target machine.
+jupyter_plaintext_password: 'ENTER-JUPYTER-PASSWORD-TO-SET'
+
+# Your Kaggle credentials (required to download the competition datasets).
+kaggle_username: 'YOUR-KAGGLE-USERNAME'
+kaggle_password: 'YOUR-KAGGLE-PASSWORD'

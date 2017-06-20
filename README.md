@@ -19,7 +19,7 @@ The final model is a GBM (LightGBM), trained with early stopping and a very smal
 
 ### Hardware Requirements
 
-Almost all notebooks (with the exception of some 3rd-party scripts) can efficiently utilize multi-core machines.
+Almost all code (with the exception of some 3rd-party scripts) can efficiently utilize multi-core machines.
 At the same time, some of them might be memory-hungry.
 All code has been tested on a machine with 64 GB RAM.
 For all non-neural notebooks, a `c4.8xlarge` AWS instance should do excellent.
@@ -27,31 +27,44 @@ For all non-neural notebooks, a `c4.8xlarge` AWS instance should do excellent.
 For neural networks, a GPU is highly recommended.
 On a GTX 1080 Ti, it takes about 8-9 hours to complete all 4 "neural" notebooks.
 
+You'll need about 30 GB of free disk space to store the pre-trained word embeddings and the extracted features.
 
 ### Software Requirements
 
 1. Python >= 3.6.
-2. LightGBM (compiled from sources).
-3. FastText (compiled from sources).
+2. [LightGBM](https://github.com/Microsoft/LightGBM) (compiled from sources).
+3. [FastText](https://github.com/facebookresearch/fastText) (compiled from sources).
 4. Python packages from `requirements.txt`.
 5. (Recommended) NVIDIA CUDA and a GPU version of TensorFlow.
 
 
 ### Environment Provisioning
 
-(WiP) You can spin up a fresh Ubuntu 16.04 AWS instance and use Ansible to make all the necessary software installation and configuration (except CUDA/Tensorflow).
+You can spin up a fresh Ubuntu 16.04 AWS instance and use Ansible to make all the necessary software installation and configuration (except the GPU-related stuff).
 
-1. Navigate to the `provisioning` directory.
-2. Edit `inventory.ini` and specify your instance DNS and the private key to access it.
-3. Run:
+1. Make sure to open the ports 22 and 8888 on the target machine.
+2. Navigate to `provisioning` directory.
+3. Edit `config.yml`:
+    * `jupyter_plaintext_password`: the password to set for the Jupyter server on the target machine.
+    * `kaggle_username`, `kaggle_password`: your Kaggle credentials (required to download the competition datasets).
+      Otherwise, download them to the `data` folder manually.
+4. Edit `inventory.ini` and specify your instance DNS and the private key file (*.pem) to access it.
+5. Run:
     ```
     $ ansible-galaxy install -r requirements.yml
     $ ansible-playbook playbook.yml -i inventory.ini
-    ``` 
+    ```
 
 ### Running the Code
 
-Start a Jupyter server in the `notebooks` directory. 
+#### Automatic
+
+Run `run_all.py` from the repository root.
+
+#### Manual
+
+Start a Jupyter server in the `notebooks` directory. If you used the Ansible playbook, the server will already be running on port 8888.
+
 Run the notebooks in the following order:
 
 1. **Preprocessing**.
