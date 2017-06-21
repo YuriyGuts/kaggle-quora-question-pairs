@@ -59,7 +59,7 @@ You can spin up a fresh Ubuntu 16.04 AWS instance and use Ansible to make all th
 
 #### Automatic
 
-Run `run_all.py` from the repository root.
+Run `run-all.sh` from the repository root. Check `notebooks/output` for execution progress and `data/submissions` for the final results.
 
 #### Manual
 
